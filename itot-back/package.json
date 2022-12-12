@@ -1,0 +1,39 @@
+{
+  "name": "itot-back",
+  "version": "0.0.1",
+  "description": "backend for itot project",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "format": "prettier . --write && eslint . --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KalvinVilla/itot.git"
+  },
+  "author": "Kavika",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KalvinVilla/itot/issues"
+  },
+  "homepage": "https://github.com/KalvinVilla/itot#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mysql": "^2.18.1",
+    "node-fetch": "^3.3.0",
+    "pino": "^8.7.0",
+    "pino-pretty": "^9.1.1"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.19.1",
+    "@babel/plugin-syntax-import-assertions": "^7.20.0",
+    "eslint": "^8.29.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-standard": "^17.0.0",
+    "nodemon": "^2.0.20",
+    "prettier": "^2.8.1"
+  }
+}
