@@ -1,3 +1,6 @@
+/**
+ *
+ */
 export class RequestParser {
   constructor(
     action,
@@ -15,6 +18,8 @@ export class RequestParser {
     this.order = order;
     this.tables = tables;
     this.conditions = conditions;
+    this.keys = [];
+    this.values = [];
   }
 
   addTable(table, link, attributes) {
@@ -134,6 +139,11 @@ export class RequestParser {
     const conditions = this.parseConditions();
     const order = this.parseOrder();
     const limit = "";
-    return `${this.action} ${attributes} ${tables.attr} FROM ${this.table} ${tables.inner} ${conditions} ${order} ${limit}`;
+    switch (this.action) {
+      case "SELECT":
+        return `${this.action} ${attributes} ${tables.attr} FROM ${this.table} ${tables.inner} ${conditions} ${order} ${limit}`;
+      case "INSERT INTO":
+        return `${this.action} ${this.table} (${this.keys}) VALUES (${this.values})`;
+    }
   }
 }

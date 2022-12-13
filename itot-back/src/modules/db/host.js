@@ -3,18 +3,47 @@ import { mysql_request } from "../../mysql.js";
 
 const log = logger(import.meta);
 
-// export const new_host = async (req , res) => {
-//     const { name, type_id, ip, mac_address, room_id, switch_id, vlan_uid } = req.body
+export const new_host = async (req, res) => {
+  const { name, type_id, ip, mac_address, room_id, switch_id, vlan_uid } =
+    req.body;
 
-//     if(name === "undefined" || type_id === "undefined" || ip === "undefined" || mac_address === "undefined" || room_id === "undefined" || switch_id === "undefined" || vlan_uid === "undefined")  res.status(200).json(MISSING_ARGUMENT)
+  const { sql } = req;
 
-//     const response = await create_host(name, type_id, ip, mac_address, room_id, switch_id, vlan_uid)
-//     log.info([response], 'Add new local user on mysql db : ')
+  sql.keys = Object.keys(req.body);
+  console.log(Object.values(req.body));
+  sql.values = Object.values(req.body).map((el) => {
+    if (Number.isInteger(el)) {
+      return el;
+    } else if (el === "" || el === "null") {
+      return "null";
+    } else {
+      return `'${el}'`;
+    }
+  });
 
-//     res.status(201).json({
-//         result: response
-//     })
-// }
+  console.log(sql);
+
+  if (
+    name === "undefined" ||
+    type_id === "undefined" ||
+    ip === "undefined" ||
+    mac_address === "undefined" ||
+    room_id === "undefined" ||
+    switch_id === "undefined" ||
+    vlan_uid === "undefined"
+  )
+    return;
+  // res.status(200).json(MISSING_ARGUMENT);
+
+  // const response = await create_host(name, type_id, ip, mac_address, room_id, switch_id, vlan_uid)
+  const response = await mysql_request(sql.build());
+  log.info([response], "Add new local user on mysql db : ");
+
+  res.status(201).json({
+    result: response,
+    request: sql.build(),
+  });
+};
 
 export const get_host = async (req, res) => {
   const {
