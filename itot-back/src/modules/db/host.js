@@ -3,12 +3,27 @@ import { mysql_request } from "../../mysql.js";
 
 const log = logger(import.meta);
 
-export const new_host = async (req, res) => {
-  const { name, type_id, ip, mac_address, room_id, switch_id, vlan_uid } =
-    req.body;
+/**
+ * 
+ * @param {Array} list 
+ * @returns {Array}
+ */
+const isUndefined = (list) => {
+  return Object.values(list).map(el => {
+    console.log(el)
+    if(typeof el === 'undefined') return 1
+    return 0;
+  })
+}
 
+export const new_host = async (req, res) => {
+  const { name, type_id, ip, mac, room_id, parent_id, vlan_uid } =
+    req.body;
   const { sql } = req;
 
+  /**
+   * TODO move to new function of request parser for new
+   */
   sql.keys = Object.keys(req.body);
   console.log(Object.values(req.body));
   sql.values = Object.values(req.body).map((el) => {
@@ -21,19 +36,20 @@ export const new_host = async (req, res) => {
     }
   });
 
-  console.log(sql);
-
   if (
-    name === "undefined" ||
-    type_id === "undefined" ||
-    ip === "undefined" ||
-    mac_address === "undefined" ||
-    room_id === "undefined" ||
-    switch_id === "undefined" ||
-    vlan_uid === "undefined"
-  )
+    // name === "undefined" ||
+    // type_id === "undefined" ||
+    // ip === "undefined" ||
+    // mac_address === "undefined" ||
+    // room_id === "undefined" ||
+    // switch_id === "undefined" ||
+    // vlan_uid === "undefined"
+    isUndefined([name, type_id, ip, mac, room_id, parent_id, vlan_uid]).includes(1)
+  ) {
+    res.status(200).json({error: "error"});
     return;
-  // res.status(200).json(MISSING_ARGUMENT);
+  }
+ 
 
   // const response = await create_host(name, type_id, ip, mac_address, room_id, switch_id, vlan_uid)
   const response = await mysql_request(sql.build());

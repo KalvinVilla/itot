@@ -38,10 +38,10 @@ db.on("error", (error) => {
 });
 
 export const mysql_request = async (request) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     db.query(request, function (err, result) {
       if (err) {
-        reject(err);
+        resolve(err);
       } else {
         resolve(result);
       }

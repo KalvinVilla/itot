@@ -3,6 +3,7 @@ import express from "express";
 import authentification from "./authentification.js";
 import logger from "./logger.js";
 import { get_host, new_host } from "./modules/db/host.js";
+import { get_vlan } from "./modules/db/vlan.js";
 import { RequestParser } from "./request-parser.js";
 
 const router = express.Router();
@@ -23,6 +24,8 @@ router.use("/db", function (req, res, next) {
 
 router.post("/db/host/get/", get_host);
 router.post("/db/host/new/", new_host);
+
+router.post("/db/vlan/get/", get_vlan)
 
 log.info("Every root has been initialized !");
 
