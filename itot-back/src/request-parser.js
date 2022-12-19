@@ -141,9 +141,9 @@ export class RequestParser {
     const limit = "";
     switch (this.action) {
       case "SELECT":
-        return `${this.action} ${attributes} ${tables.attr} FROM ${this.table} ${tables.inner} ${conditions} ${order} ${limit}`;
+        return `${this.action} ${attributes} ${tables.attr} FROM ${this.table} ${tables.inner} ${conditions} ${order} ${limit}`.trim();
       case "INSERT INTO":
-        return `${this.action} ${this.table} (${this.keys}) VALUES (${this.values})`;
+        return `${this.action} ${this.table} (${this.keys}) VALUES (${this.values})`.trim();
     }
   }
 }
