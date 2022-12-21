@@ -1,0 +1,17 @@
+.header {
+    position: relative;
+    display: flex;
+    height: 75px;
+    background-color: #6200ee;
+}
+
+.header-logo {
+    height: auto;
+    margin: 10px 25px;
+}
+
+.header-title {
+    font-size: 1.2em;
+    margin: auto 0px;
+    color: #FFF;
+}

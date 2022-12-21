@@ -16,6 +16,22 @@ const isUndefined = (list) => {
   })
 }
 
+export const update_host = async (req, res) => {
+  const { name, type_id, ip, mac, room_id, parent_id, vlan_uid } =
+  req.body;
+
+  console.log(name, ip)
+
+  const sq = `UPDATE host SET name="${name}" WHERE ip="${ip}"`
+  //const sq = `UPDATE host SET name='${name}' type_id='${type_id}' mac='${mac}' room_id='${room_id}' parent_id='${parent_id}' vlan_uid='${vlan_uid}' WHERE ip=${ip}`
+
+  const response = await mysql_request(sq);
+  res.status(201).json({
+    result: response,
+    request: sq,
+  });
+}
+
 export const new_host = async (req, res) => {
   const { name, type_id, ip, mac, room_id, parent_id, vlan_uid } =
     req.body;

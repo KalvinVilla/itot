@@ -2,7 +2,7 @@ import express from "express";
 
 import authentification from "./authentification.js";
 import logger from "./logger.js";
-import { get_host, new_host } from "./modules/db/host.js";
+import { get_host, new_host, update_host } from "./modules/db/host.js";
 import { get_vlan } from "./modules/db/vlan.js";
 import { RequestParser } from "./request-parser.js";
 
@@ -24,6 +24,7 @@ router.use("/db", function (req, res, next) {
 
 router.post("/db/host/get/", get_host);
 router.post("/db/host/new/", new_host);
+router.post("/db/host/update", update_host)
 
 router.post("/db/vlan/get/", get_vlan)
 

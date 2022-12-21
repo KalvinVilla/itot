@@ -1,0 +1,33 @@
+.vlan-nav {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  top: 0px;
+  left: 0px;
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+  height: 90px;
+  overflow-x: scroll;
+  scrollbar-color: black white;
+  scrollbar-width: thin;
+}
+
+.vlan-item[selected] .vlan-item-btn {
+  background-color: #6200ee;
+  color: white;
+}
+
+.vlan-item-btn {
+  width: 125px;
+  background: transparent;
+  border: none;
+  border-right: 1px rgba(0, 0, 0, 0.6) outset;
+  height: 100%;
+}
+
+.vlan-item-btn:hover {
+  cursor: pointer;
+  background-color: #6200ee;
+  color: white;
+}

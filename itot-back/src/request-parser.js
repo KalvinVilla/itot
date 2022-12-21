@@ -144,6 +144,8 @@ export class RequestParser {
         return `${this.action} ${attributes} ${tables.attr} FROM ${this.table} ${tables.inner} ${conditions} ${order} ${limit}`.trim();
       case "INSERT INTO":
         return `${this.action} ${this.table} (${this.keys}) VALUES (${this.values})`.trim();
+      case "UPDATE":
+        return `${this.action} ${this.table} SET `
     }
   }
 }

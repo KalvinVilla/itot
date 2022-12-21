@@ -18,6 +18,14 @@ ul {
     list-style: none;
 }
 
+option {
+    text-align: center;
+}
+
+input:focus:not(.focus-visible) {
+    outline: none;
+}
+
 
 .header-nav {
     display: flex
@@ -50,7 +58,7 @@ ul {
     scrollbar-width: thin;
 }
 
-.vlan_item[selected] .vlan_item_btn {
+.vlan_item[selected="current"] .vlan_item_btn {
     background-color: #6200ee;
     color: white;
 }

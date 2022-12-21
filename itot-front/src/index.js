@@ -1,9 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './assets/css/index.css';
 import reportWebVitals from './reportWebVitals';
-import VLanList from './components/VLanList.js';
-import HostTable from './components/HostTable.js';
 import App from './App.js';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
