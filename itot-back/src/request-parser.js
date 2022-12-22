@@ -1,151 +1,138 @@
+
 /**
- *
+ * 
+ * @param {
+ * action: string
+ * table: {
+ *  name: string
+ *  attributes: string | array
+ *  values: string | array
+ * }
+ * table_join: [
+ *  {
+ *    name: string
+ *    join: string
+ *    attributes: string 
+ * }
+ * condition, [
+ * {
+ *    table: string
+ *    attribute: string
+ *    values: string | array
+},
+ * ]
+ * ]
+ * } SQLObject 
+ * @param {function name(params) {
+  
+ }} response 
  */
-export class RequestParser {
-  constructor(
-    action,
-    table,
-    attributes,
-    limit,
-    order,
-    tables = [],
-    conditions = []
-  ) {
-    this.action = this.parseType(action);
-    this.table = table;
-    this.attributes = attributes;
-    this.limit = limit;
-    this.order = order;
-    this.tables = tables;
-    this.conditions = conditions;
-    this.keys = [];
-    this.values = [];
+export const build_request = ({action, table, table_join, conditions}, response) => {
+  const REQUEST = []
+
+  const build_table_attributes = ({name, attributes}) => {
+      if(attributes !== undefined) {
+          if(Array.isArray(attributes)) {
+              return attributes.map(atr => {
+                  return `${name}.${atr} as '${name}_${atr}'`
+              })
+          } else {
+              return `${name}.${attributes} as '${name}_${attributes}'`
+          }
+      } else {
+          return '*'
+      }
+  }
+  const build_table_join = ({name, join}) => {
+      return `INNER JOIN ${name} ON ${table.name}.${name}_${join} = ${table.name}.${join}`;
+  }
+  /*
+  *   TODO Add system for multiple condition
+  */
+  const build_table_condition = ({table, attribute, values}) => {
+      /*
+          TODO if table === undefined use main table 
+      */
+      if((Array.isArray(values))) {
+          return `WHERE ${table}.${attribute} in ${values.map(v => {return `'${v}'`})}`
+      } else {
+          return `WHERE ${table}.${attribute} = '${values}'`
+      }
   }
 
-  addTable(table, link, attributes) {
-    this.tables.push({
-      table,
-      link,
-      attributes,
-    });
-  }
-
-  addCondition(column, condition) {
-    this.conditions.push({
-      column,
-      condition,
-    });
-  }
-
-  parseType(action) {
-    if (action === "get") {
-      return "SELECT";
-    } else if (action === "new") {
-      return "INSERT INTO";
-    }
-    return action;
-  }
-
-  parseAttributes() {
-    if (this.attributes !== undefined) {
-      if (Array.isArray(this.attributes)) {
-        return this.attributes.map((attribute) => {
-          return `${this.table}.${attribute} as '${this.table}_${attribute}'`;
+  const build_table_values = (values) => {
+      return Object.values(values).map((el) => {
+          if (Number.isInteger(el)) {
+            return el;
+          } else if (el === "" || el === "null") {
+            return "null";
+          } else {
+            return `'${el}'`;
+          }
         });
-      } else {
-        return (
-          this.table +
-          "." +
-          this.attributes +
-          " as '" +
-          this.table +
-          "_" +
-          this.attributes +
-          "'"
-        );
-      }
-    } else {
-      return "*";
-    }
   }
 
-  parseTables() {
-    let attr = "";
-    let inner = "";
-    this.tables.forEach((t) => {
-      const { table } = t;
-      const { attributes } = t;
-      const { link } = t;
-      if (Array.isArray(attributes)) {
-        attr +=
-          "," +
-          attributes.map((el) => {
-            return `${table}.${el} as '${table}_${el}'`;
+
+
+  const build_table_update = ({attributes, values}) => {
+      const builder = []
+
+      for(let i = 0; i < attributes.length; i++) {
+          builder.push(`${attributes[i]}="${values[i]}"`)
+      }
+
+      return builder.join(', ')
+  }
+
+  switch(action) {
+      case "get":
+          // SET ACTION REQUEST 
+          REQUEST.push('SELECT')
+          // SET ATTRIBUTES REQUEST 
+          REQUEST.push(build_table_attributes(table))
+          table_join.forEach(table => {
+              REQUEST.push(build_table_attributes(table))
           });
-      } else {
-        attr += `, ${table}.${attributes} as '${table}_${attributes}'`;
-      }
-
-      inner += ` INNER JOIN ${table} ON ${this.table}.${table}_${link} = ${table}.${link}`;
-    });
-
-    return {
-      attr,
-      inner,
-    };
+          REQUEST.push('FROM')
+          REQUEST.push(table.name)
+          // SET INNER JOIN
+          table_join.forEach(table => {
+              REQUEST.push(build_table_join(table))
+          })
+          // SET CONDITION
+          conditions.forEach(table => {
+              REQUEST.push(build_table_condition(table))
+          })
+          break
+      case "new":
+          REQUEST.push('INSERT INTO')
+          REQUEST.push(table.name)
+          REQUEST.push(`(${table.attributes})`)
+          REQUEST.push('VALUES')
+          REQUEST.push(`(${build_table_values(table.values)})`)
+          break
+      case "update":
+          REQUEST.push('UPDATE')
+          REQUEST.push(table.name)
+          REQUEST.push('SET')
+          REQUEST.push(build_table_update(table))
+          conditions.forEach(table => {
+              REQUEST.push(build_table_condition(table))
+          })
+          break
+      case "remove":
+          REQUEST.push('DELETE FROM')
+          REQUEST.push(table.name)
+          conditions.forEach(table => {
+              REQUEST.push(build_table_condition(table))
+          })
+          break
+      default :
+          sql = "ERROR"
+          break
   }
 
-  parseConditions() {
-    let conditions = "";
-    this.conditions.forEach((c, key) => {
-      const { column } = c;
-      const { condition } = c;
-      if (key === 0) {
-        if (Array.isArray(condition)) {
-          conditions = `WHERE ${this.table}.${column} in (${condition.map(
-            (el) => {
-              return `'${el}'`;
-            }
-          )})`;
-        } else {
-          conditions = `WHERE ${this.table}.${column} = '${condition}'`;
-        }
-      } else {
-        if (Array.isArray(condition)) {
-          conditions += ` OR ${this.table}.${column} in (${condition.map(
-            (el) => {
-              return `'${el}'`;
-            }
-          )})`;
-        } else {
-          conditions += ` OR ${this.table}.${column} = '${condition}'`;
-        }
-      }
-    });
 
-    return conditions;
-  }
-
-  parseOrder() {
-    if (this.order === "ASC" || this.order === "DESC") {
-      return `ORDER BY name ${this.order}`;
-    }
-    return "";
-  }
-
-  build() {
-    const attributes = this.parseAttributes();
-    const tables = this.parseTables();
-    const conditions = this.parseConditions();
-    const order = this.parseOrder();
-    const limit = "";
-    switch (this.action) {
-      case "SELECT":
-        return `${this.action} ${attributes} ${tables.attr} FROM ${this.table} ${tables.inner} ${conditions} ${order} ${limit}`.trim();
-      case "INSERT INTO":
-        return `${this.action} ${this.table} (${this.keys}) VALUES (${this.values})`.trim();
-      case "UPDATE":
-        return `${this.action} ${this.table} SET `
-    }
-  }
+  // BUILD STRING
+  response(REQUEST.join(' '))
 }

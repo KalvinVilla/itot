@@ -1,5 +1,6 @@
 import logger from "../../logger.js";
 import { mysql_request } from "../../mysql.js";
+import { build_request } from "../../request-parser.js"
 
 const log = logger(import.meta);
 
@@ -17,65 +18,65 @@ const isUndefined = (list) => {
 }
 
 export const update_host = async (req, res) => {
-  const { name, type_id, ip, mac, room_id, parent_id, vlan_uid } =
+  const { name, type_id, ip, mac, room_id, parent_id, vlan_uid, commentary } =
   req.body;
+  const { sql_object } = req;
 
-  console.log(name, ip)
+  // TODO CORRECT 
+  sql_object.table.attributes = []
+  sql_object.table.values = []
 
-  const sq = `UPDATE host SET name="${name}" WHERE ip="${ip}"`
-  //const sq = `UPDATE host SET name='${name}' type_id='${type_id}' mac='${mac}' room_id='${room_id}' parent_id='${parent_id}' vlan_uid='${vlan_uid}' WHERE ip=${ip}`
+  if(typeof name !== 'undefined') { sql_object.table.attributes.push('name'); sql_object.table.values.push(name)}
+  if(typeof type_id !== 'undefined') { sql_object.table.attributes.push('type_id'); sql_object.table.values.push(type_id)}
+  if(typeof mac !== 'undefined') { sql_object.table.attributes.push('mac'); sql_object.table.values.push(mac)}
+  if(typeof room_id !== 'undefined') { sql_object.table.attributes.push('room_id'); sql_object.table.values.push(room_id)}
+  if(typeof parent_id !== 'undefined') { sql_object.table.attributes.push('parent_id'); sql_object.table.values.push(parent_id)}
+  if(typeof vlan_uid !== 'undefined') { sql_object.table.attributes.push('vlan_uid'); sql_object.table.values.push(vlan_uid)}
+  if(typeof commentary !== 'undefined') { sql_object.table.attributes.push('commentary'); sql_object.table.values.push(commentary)}
+  
+  sql_object.conditions.push({table: sql_object.table.name, attribute: 'ip', values: ip})
 
-  const response = await mysql_request(sq);
-  res.status(201).json({
-    result: response,
-    request: sq,
-  });
+  build_request(sql_object, async request => {
+    const response = await mysql_request(request);
+
+    console.log(request)
+
+    log.info(response, "send");
+  
+    res.status(200).json({
+      request: request,
+      result: response,
+    });
+  })
 }
 
 export const new_host = async (req, res) => {
   const { name, type_id, ip, mac, room_id, parent_id, vlan_uid } =
     req.body;
-  const { sql } = req;
+    const { sql_object } = req;
 
-  /**
-   * TODO move to new function of request parser for new
-   */
-  sql.keys = Object.keys(req.body);
-  console.log(Object.values(req.body));
-  sql.values = Object.values(req.body).map((el) => {
-    if (Number.isInteger(el)) {
-      return el;
-    } else if (el === "" || el === "null") {
-      return "null";
-    } else {
-      return `'${el}'`;
-    }
-  });
+  sql_object.table.attributes = Object.keys(req.body)
+  sql_object.table.values = Object.values(req.body)
 
   if (
-    // name === "undefined" ||
-    // type_id === "undefined" ||
-    // ip === "undefined" ||
-    // mac_address === "undefined" ||
-    // room_id === "undefined" ||
-    // switch_id === "undefined" ||
-    // vlan_uid === "undefined"
-    isUndefined([name, type_id, ip, mac, room_id, parent_id, vlan_uid]).includes(1)
+    isUndefined([name, type_id, ip, mac, vlan_uid]).includes(1)
   ) {
     res.status(200).json({error: "error"});
     return;
   }
  
+  build_request(sql_object, async request => {
+    const response = await mysql_request(request);
 
-  // const response = await create_host(name, type_id, ip, mac_address, room_id, switch_id, vlan_uid)
-  const response = await mysql_request(sql.build());
-  log.info([response], "Add new local user on mysql db : ");
-
-  res.status(201).json({
-    result: response,
-    request: sql.build(),
-  });
-};
+    log.info(response, "send");
+  
+    res.status(200).json({
+      request: request,
+      result: response,
+    });
+  })
+  
+}
 
 export const get_host = async (req, res) => {
   const {
@@ -88,46 +89,60 @@ export const get_host = async (req, res) => {
     selectParent,
     selectRoom,
   } = req.body;
-  const { sql } = req;
+  const { sql_object } = req;
+
+
 
   if (hosts !== undefined) {
-    sql.addCondition("name", hosts);
+    //sql.addCondition("name", hosts);
+    sql_object.conditions.push({table: sql_object.table.name, attribute: 'name', values: hosts})
   }
 
   if (ids !== undefined) {
-    sql.addCondition("id", ids);
+    //sql.addCondition("id", ids);
+    sql_object.conditions.push({table: sql_object.table.name, attribute: 'id', values: ids})
   }
 
   if (vlans !== undefined) {
-    sql.addCondition("vlan_uid", vlans);
+    //sql.addCondition("vlan_uid", vlans);
+    sql_object.conditions.push({table: sql_object.table.name, attribute: 'vlan_uid', values: vlans})
   }
 
   if (ips !== undefined) {
-    sql.addCondition("ip", ips);
+    //sql.addCondition("ip", ips);
+    sql_object.conditions.push({table: sql_object.table.name, attribute: 'ip', values: ips})
   }
 
   if (selectType !== undefined) {
-    sql.addTable("type", "id", selectType);
+    //sql.addTable("type", "id", selectType);
+    sql_object.conditions.push({table: sql_object.table.name, attribute: 'id', values: ips})
   }
 
   if (selectVlan !== undefined) {
-    sql.addTable("vlan", "uid", selectVlan);
+    sql_object.table_join.push({table: "vlan", attributes: 'uid', values: ips})
+    //sql.addTable("vlan", "uid", selectVlan);
   }
 
   if (selectParent !== undefined) {
-    sql.addTable("parent", "id", selectParent);
+    sql_object.table_join.push({table: "parent", attributes: 'id', values: selectParent})
+    //sql.addTable("parent", "id", selectParent);
   }
 
   if (selectRoom !== undefined) {
-    sql.addTable("room", "id", selectRoom);
+    sql_object.table_join.push({table: "room", attributes: 'id', values: selectRoom})
+    //sql.addTable("room", "id", selectRoom);
   }
 
-  const response = await mysql_request(sql.build());
+  build_request(sql_object, async request => {
+    const response = await mysql_request(request);
 
-  log.info(response, "send");
+    log.info(response, "send");
+  
+    res.status(200).json({
+      request: request,
+      result: response,
+    });
+  })
 
-  res.status(200).json({
-    request: sql.build(),
-    result: response,
-  });
+
 };
