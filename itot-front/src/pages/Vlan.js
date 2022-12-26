@@ -1,4 +1,5 @@
 import { createContext, useState } from "react"
+import { useParams } from "react-router-dom"
 import Footer from "../components/Footer.js"
 import Header from "../components/Header.js"
 import HostEditor from "../components/HostEditor.js"
@@ -9,6 +10,7 @@ export const VlanContext = createContext()
 
 const Vlan = () => {
 
+    const { uid } = useParams();
     const [selected_vlan, setSelectedVlan] = useState(undefined)
 
     return (
@@ -19,7 +21,7 @@ const Vlan = () => {
             {selected_vlan === undefined ? <div style={{height: '15vh', textAlign:'center', padding: "300px 0", fontSize:"2em"}}>Waiting vlan</div> : 
             <>
             <VLanEditor />
-            <HostEditor />
+            <HostEditor vlan={uid} />
             </>
             }
         </VlanContext.Provider>

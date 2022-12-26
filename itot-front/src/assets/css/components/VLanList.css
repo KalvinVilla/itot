@@ -13,7 +13,7 @@
   scrollbar-width: thin;
 }
 
-.vlan-item[selected] .vlan-item-btn {
+.vlan-item[selected] .vlan-item-btn, .vlan-item-inversed .vlan-item-btn {
   background-color: #6200ee;
   color: white;
 }

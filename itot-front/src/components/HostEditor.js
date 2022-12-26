@@ -6,7 +6,7 @@ import SelectInput from './SelectInput.js';
 
 let Netmask = require('netmask').Netmask
 
-const HostEditor = () => {
+const HostEditor = (uid) => {
 
     const vlan = useContext(VlanContext)
 
@@ -47,6 +47,7 @@ const HostEditor = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            console.log(uid)
                     if(vlan.selected_vlan === undefined) return 
                     const { uid, network, mask } = vlan.selected_vlan
                     const netmask = new Netmask(`${network}/${mask}`)
@@ -88,7 +89,7 @@ const HostEditor = () => {
         
         return;
 
-    }, [vlan.selected_vlan])
+    }, [uid])
 
     const handleChange = (e) => {
         const { value, defaultValue, valueDefault, name } = e.target
