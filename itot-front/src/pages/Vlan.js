@@ -1,4 +1,4 @@
-import { createContext, useState } from "react"
+import { createContext, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import Footer from "../components/Footer.js"
 import Header from "../components/Header.js"
@@ -12,6 +12,37 @@ const Vlan = () => {
 
     const { uid } = useParams();
     const [selected_vlan, setSelectedVlan] = useState(undefined)
+
+    useEffect(() => {
+        
+        const fetchData = async () => {
+
+            fetch("/db/vlan/get", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    vlans : uid
+                })
+            }).then(async resp => {
+                if(!resp.ok) {
+                    console.log("API error")
+                    return;
+                }
+                
+                await resp.json().then(response => {
+                    setSelectedVlan(response.result[0])
+                    return;
+                })
+            })
+        }
+
+        if(uid !== undefined) fetchData()
+        
+        return;
+
+    }, [uid])
 
     return (
         <>

@@ -1,55 +1,55 @@
 import '../assets/css/components/HostTable.css'
 import { useContext, useEffect, useState } from 'react';
 import { VlanContext } from '../pages/Vlan.js';
-import SelectInput from './SelectInput.js';
+import SelectInput from './native/SelectInput.js';
 
 
 let Netmask = require('netmask').Netmask
 
-const HostEditor = (uid) => {
+const HostEditor = () => {
 
     const vlan = useContext(VlanContext)
 
-    const [saveDisable, setSaveDisable] = useState(true)
+    const [changeList, setChangeList] = useState({});
 
-    const header = ["","ip", "name", "type", "mac", "parent", "room", "desc"]
-
-    let saveNeeded = []
-
-    const list = [
-        {
-          value: 1,
-          text: "Switch"
-        },
-        {
-          value: 2,
-          text: "Routeur of the routeur de la mort"
-        },
-        {
-          value: 3,
-          text: "Serveur"
-        },
-      ]
-
+    const header = ["ip", "name", "type", "mac", "parent", "room", "desc"]
 
     const [host, setHost] = useState(undefined)
-
-    // const upsert = (array, key, name, value) => {
-    //     const i = array.findIndex(_element => _element[key] !== undefined);
-    //     if (i > -1) 
-    //         return array.map(_element =>
-    //         _element[key] !== undefined
-    //         ? { [key] :{..._element[key], [name]: value} } : _element
-    //     );
-    //     else return [array.push({[key]: {[name]:value}})]
-
-    // }
+    const [type, setType] = useState(undefined)
 
     useEffect(() => {
         const fetchData = async () => {
-            console.log(uid)
-                    if(vlan.selected_vlan === undefined) return 
-                    const { uid, network, mask } = vlan.selected_vlan
+
+            fetch("/db/type/get", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            }).then(async resp => {
+                if(!resp.ok) {
+                    console.log("API error")
+                    return;
+                }
+                
+                await resp.json().then(response => {
+                    setType(response.result.map(type => {
+                        return {value: type.id, text: type.name}
+                    }))
+                    console.log(type)
+                    return;
+                })
+            })
+        }
+
+       fetchData()
+        
+        return;
+    }, [])
+
+    useEffect(() => {
+        const fetchData = async () => {
+                    const { selected_vlan } = vlan
+                    const { uid, network, mask } = selected_vlan
                     const netmask = new Netmask(`${network}/${mask}`)
 
                     fetch("/db/host/get/", {
@@ -70,11 +70,12 @@ const HostEditor = (uid) => {
                             const tab = []
                             netmask.forEach((el, key) => {
                                 if(el === vlan.selected_vlan.gateway) {
-                                    tab.push({ip: el, name: "Gateway", id: key, gateway: ''})
+                                    tab.push({ip: el, name: "Gateway", id: key, gateway: true})
                                     return
                                 }
-                                const h = result.find(e => e.ip === el) ?? {id: key, ip: el}
-                                tab.push(h)
+                                const ho = result.find(e => e.ip === el) ? {...result.find(e => e.ip === el), exist: true} : {id: key, ip: el, exist:false, edited: false}
+                            
+                                tab.push(ho)
 
                              });
                             setHost(tab)
@@ -83,41 +84,73 @@ const HostEditor = (uid) => {
                     })
         }
 
-        fetchData()
+        if(vlan.selected_vlan !== undefined) fetchData()
 
 
         
         return;
 
-    }, [uid])
+    }, [vlan])
 
-    const handleChange = (e) => {
-        const { value, defaultValue, valueDefault, name } = e.target
-        const parent = e.target.closest(".htbl")
-        const key = parent.getAttribute("data-key")
-        const action = parent.getAttribute("data-action")
+    // const handleChange = (e, key, exist, name) => {
+    //     const { value, defaultValue } = e.target
 
-        if(defaultValue !== value || valueDefault !== value) {
-            const i = saveNeeded.findIndex(_element => _element[key] !== undefined);
-            if (i > -1) 
-            saveNeeded = saveNeeded.map(_element =>
-                _element[key] !== undefined
-                ? { [key] :{..._element[key], [name]: value} } : _element
+    //     if(defaultValue !== value) {
+    //         const i = saveNeeded.findIndex(_element => _element[key] !== undefined);
+    //         if (i > -1) 
+    //         saveNeeded = saveNeeded.map(_element =>
+    //             _element[key] !== undefined
+    //             ? { [key] :{..._element[key], [name]: value} } : _element
+    //         );
+    //         else saveNeeded.push({[key]: {exist: exist, [name]:value}});
+    //         e.target.classList.add("modified")
+    //     }
+
+    //     console.log(saveNeeded)
+
+    // }
+
+    const handleChange = (e, ip, exist, type) => {
+        const { value, defaultValue } = e.target;
+    
+        console.log("Value : " +  value + " DefaultV : " + defaultValue)
+    
+        host.forEach(row => {
+          if(row.ip !== ip) return;
+          if (value !== defaultValue) {
+            setChangeList(prevChangeList => ({
+              ...prevChangeList,
+              [ip]: {
+                ...prevChangeList[ip],
+                [type]: value,
+                exist: exist
+              },
+            }));
+    
+            setHost(prevTableData =>
+              prevTableData.map(row => {
+                if (row.ip === ip) {
+                  return { ...row, [type]: value, edited: true };
+                }
+                return row;
+              })
             );
-            else saveNeeded.push({[key]: {action: action, [name]:value}});
-            e.target.classList.add("modified")
-        }
-
-        console.log(saveNeeded)
-
-    }
+    
+          } else {
+            setChangeList(prevChangeList => ({
+              ...prevChangeList,
+            }));
+          }
+        })
+      }
 
     const handleSave = () => {
-        if(saveNeeded.length !== 0) {
-            const saveData = async (action, body) => {
+        //if(saveNeeded.length !== 0) {
+            if(0 === 0) {
+            const saveData = async (exist, body) => {
 
 
-                if(action === 'update') {
+                if(exist === true) {
                     fetch("/db/host/update/", {
                         method: "POST",
                         headers: {
@@ -152,41 +185,48 @@ const HostEditor = (uid) => {
                 }
             }
 
-            saveNeeded.forEach(el => {
-                const [ip] = Object.keys(el)
-                const [{action, name, type_id, mac, parent, room_id, commentary}] = Object.values(el)
+            // saveNeeded.forEach(el => {
+            //     const [ip] = Object.keys(el)
+            //     const [{exist, name, type_id, mac, parent, room_id, commentary}] = Object.values(el)
 
 
-                console.log(JSON.stringify({ip, name, vlan_uid: vlan.selected_vlan.uid, type_id, mac, parent, room_id, commentary}))
-                saveData(action, JSON.stringify({ip, name, vlan_uid: vlan.selected_vlan.uid, type_id, mac, parent, room_id, commentary}))
+            //     console.log(JSON.stringify({ip, name, vlan_uid: vlan.selected_vlan.uid, type_id, mac, parent, room_id, commentary}))
+            //     saveData(exist, JSON.stringify({ip, name, vlan_uid: vlan.selected_vlan.uid, type_id, mac, parent, room_id, commentary}))
 
-            })
+            // })
         } 
     }
 
+    useEffect(() => {
+
+        console.log("-- CHANGE LIST -- ")
+        console.log(changeList)
+        console.log("-- TABLE DATA -- ")
+        console.log(host)
+    
+        if(Object.entries(changeList).length > 0) {
+          // CAN SAVE
+        }
+    
+      }, [changeList, host])
+
     const HandleView = () => {
-        return host.map(({ip, name, type_id, mac, parent, room, commentary , gateway}) => {
-            return <tr key={ip} data-key={ip} className="htbl" data-action={name !== undefined ? 'update' : 'create'}>
-            <td><div className="state"></div></td>
+        return host.map(({ip, name, type_id, mac, parent, room, commentary , gateway, exist, edited}) => {
+            return <tr  style={{ backgroundColor: edited === true ? 'orange' : 'white' }} key={ip} data-key={ip} className="htbl">
             <td>{ip}</td>
-            <td><input className="host-table-input" onBlur={(e) => handleChange(e)}  type="text" name='name' defaultValue={name}/></td>
+            <td><input className="host-table-input" onBlur={e => handleChange(e, ip, exist, 'name')}  type="text" defaultValue={name}/></td>
             <td>
-            <SelectInput className="host-table-select" blur={(e) => handleChange(e)} name="type_id" valueDefault={type_id} list={list} placeholder="Choose a type" value={type_id} />
-                {/* <select className="host-table-select" onBlur={(e) => handleChange(e)} name="type_id">
-                <option>{type_id !== undefined ? type_id.toString() : 0}</option>
-                <option>1</option>
-                <option>Server</option>
-            </select> */}
+            <SelectInput className="host-table-select" blur={e => handleChange(e, ip, exist, 'type_id')} valueDefault={type_id} list={type} placeholder="Choose a type" value={type_id} />
             </td>
-            <td><input className="host-table-input" onBlur={(e) => handleChange(e)} name='mac' type="text" defaultValue={mac}/></td>
-            <td><input className="host-table-input" onBlur={(e) => handleChange(e)} name="parent" type="text" defaultValue={parent}/></td>
-            <td><select className="host-table-input" onBlur={(e) => handleChange(e)} name="room_id">
+            <td><input className="host-table-input" onBlur={e => handleChange(e, ip, exist, 'mac')} type="text" defaultValue={mac}/></td>
+            <td><input className="host-table-input" onBlur={e => handleChange(e, ip, exist, 'parent')} type="text" defaultValue={parent}/></td>
+            <td><select className="host-table-input" onBlur={e => handleChange(e, ip, exist, 'room_id')}>
                 <option>{room}</option>
                 <option>LT01</option>
                 <option>LT02</option>
             </select></td>
             <td>
-                <textarea className="host-table-input area" onBlur={(e) => handleChange(e)} name="commentary" cols="20" defaultValue={commentary}></textarea>
+                <textarea className="host-table-input area" onBlur={e => handleChange(e, ip, exist, 'commentary')} cols="20" defaultValue={commentary}></textarea>
             </td>
         </tr>
         })

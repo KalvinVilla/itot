@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import '../assets/css/components/SelectInput.css'
+import '../../assets/css/components/SelectInput.css'
 
 const SelectInput = ({list, placeholder, value, blur, name}) => {
 
     const [val, setVal] = useState(value)
-
-
+    
     const [hiddenList, setHiddenList] = useState(true)
     const [currentList, setCurrentList] = useState([])
 
@@ -55,6 +54,10 @@ const SelectInput = ({list, placeholder, value, blur, name}) => {
         
     // }, [value])
 
+    useEffect(() => {
+        //console.log(list.find(el => el.value === 1).text)
+    }, [list])
+
     
 
     const handleResult = ({text}) => {
@@ -62,8 +65,17 @@ const SelectInput = ({list, placeholder, value, blur, name}) => {
         setHiddenList(true)
     }
 
+    const parseValue = ({val}) => {
+        const value = list.find(el => el.value === val)
+        if(value) {
+            return value.text
+        } else {
+            return ""
+        } 
+    }
+
     return <div onBlur={() => handleBlur()} className='ui'>
-        <input className='ui-input' name={name} placeholder={placeholder} value={val} onBlur={blur} onChange={(e) => handleChange(e)} onClick={(e) => handleClick(e)}  type='text' />
+        <input className='ui-input' name={name} placeholder={placeholder} value={list.find((el) => el.value === val)?.text || list.find((el) => el.value === 1)?.text} onBlur={blur} onChange={(e) => handleChange(e)} onClick={(e) => handleClick(e)}  type='text' />
         <div className='ui-result' hidden={hiddenList}>
             <ul>
             {currentList.map(({text}, key) => {

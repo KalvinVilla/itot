@@ -3,6 +3,8 @@ import PrivateRoutes from './utils/PrivateRoutes.js';
 
 import Login from './pages/Login.js';
 import Vlan from "./pages/Vlan.js";
+import TableInputs from './components/InputTable.js';
+import MComponent from './components/gpt/Mcomponent.js';
 
   function App() {
     return (
@@ -10,7 +12,7 @@ import Vlan from "./pages/Vlan.js";
         <Router>
           <Routes>
             <Route element={<PrivateRoutes />}>
-              <Route element={<div>Hello</div>} path="/" exact />
+              <Route element={<div><TableInputs /><MComponent/></div>} path="/" exact />
               <Route path="/vlan">
                 <Route path='' element={<Vlan />} />
                 <Route path=":uid" element={<Vlan />} />

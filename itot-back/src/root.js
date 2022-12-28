@@ -3,6 +3,7 @@ import express from "express";
 import authentification from "./authentification.js";
 import logger from "./logger.js";
 import { get_host, new_host, update_host } from "./modules/db/host.js";
+import { get_type } from "./modules/db/type.js";
 import { get_vlan, new_vlan, update_vlan} from "./modules/db/vlan.js";
 
 const router = express.Router();
@@ -33,6 +34,8 @@ router.post("/db/host/update/", update_host)
 router.post("/db/vlan/get/", get_vlan)
 router.post("/db/vlan/new/", new_vlan);
 router.post("/db/vlan/update/", update_vlan)
+
+router.post("/db/type/get/", get_type)
 
 log.info("Every root has been initialized !");
 

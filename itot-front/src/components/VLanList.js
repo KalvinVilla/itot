@@ -1,11 +1,8 @@
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom";
 import '../assets/css/components/VLanList.css'
-import { VlanContext } from "../pages/Vlan.js";
 
 const VLanList = () => {
-
-    const vlan = useContext(VlanContext);
 
     const navigate = useNavigate();
 
@@ -44,7 +41,6 @@ const VLanList = () => {
     const handleClick = (v) => {
         navigate(`/vlan/${v}`);
         setSelectedItem(v)
-        //vlan.setSelectedVlan(v)
     }
 
     const HandleView = () => {
