@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import '../../assets/css/components/SelectInput.css'
+import '../../assets/css/components/native/CustomSelectInput.css'
 
-const SelectInput = ({list, placeholder, value, blur, name}) => {
+const CustomSelectInput = (props) => {
 
-    const [val, setVal] = useState(value)
+    const { list, defaultvalue, ...rest} = props
+
+    const [val, setVal] = useState(defaultvalue)
     
     const [hiddenList, setHiddenList] = useState(true)
     const [currentList, setCurrentList] = useState([])
@@ -35,24 +37,23 @@ const SelectInput = ({list, placeholder, value, blur, name}) => {
         }))
     }
 
-    const handleBlur = () => {
+    const handleBlur = (e) => {
         setTimeout(() => {
             setHiddenList(true)
+            const value = list.find(el => el.text === val)?.value
+            console.log(val)
+            console.log(defaultvalue)
+            //blur(e)
         }, 100);
+
+
 
         
     }
 
-    // useEffect(() => {
-    //     return () => {
-    //         setVal(list.filter(el => {
-    //         console.log(el)
-    //         console.log(value)
-    //         return el.value === value
-    //     }))
-    //     }
-        
-    // }, [value])
+    useEffect(() => {
+
+    }, [])
 
     useEffect(() => {
         //console.log(list.find(el => el.value === 1).text)
@@ -65,17 +66,8 @@ const SelectInput = ({list, placeholder, value, blur, name}) => {
         setHiddenList(true)
     }
 
-    const parseValue = ({val}) => {
-        const value = list.find(el => el.value === val)
-        if(value) {
-            return value.text
-        } else {
-            return ""
-        } 
-    }
-
-    return <div onBlur={() => handleBlur()} className='ui'>
-        <input className='ui-input' name={name} placeholder={placeholder} value={list.find((el) => el.value === val)?.text || list.find((el) => el.value === 1)?.text} onBlur={blur} onChange={(e) => handleChange(e)} onClick={(e) => handleClick(e)}  type='text' />
+    return <div onBlur={(e) => handleBlur(e)} className='ui'>{/*</div><div onBlur={() => handleBlur()} className='ui'>*/}
+        <input className='ui-input' {...rest} value={val}  onChange={(e) => handleChange(e)} onClick={(e) => handleClick(e)}  type='text' />
         <div className='ui-result' hidden={hiddenList}>
             <ul>
             {currentList.map(({text}, key) => {
@@ -87,4 +79,4 @@ const SelectInput = ({list, placeholder, value, blur, name}) => {
 
 }
 
-export default SelectInput
+export default CustomSelectInput
